@@ -1,0 +1,13 @@
+[project]
+name = "fixtures-convert"
+version = "0.1.0"
+description = "Convert sports fixtures between CSV and iCalendar (.ics) files"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+
+[project.scripts]
+fixtures-convert = "fixtures_convert.cli:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
