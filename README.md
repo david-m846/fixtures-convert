@@ -27,6 +27,17 @@ fixtures-convert season.csv season.ics
 
 The format is chosen from each file's extension.
 
+By default, kickoff times are written floating (no timezone offset), which
+means the calendar app applies whatever timezone it's already set to. Pass
+`--tz` with an IANA zone name to pin the fixtures to a specific zone instead:
+
+```
+fixtures-convert season.csv season.ics --tz Europe/London
+```
+
+`--tz` only makes sense when writing `.ics`; it's rejected if the destination
+is `.csv`.
+
 ## CSV format
 
 One row per match, header required:
@@ -49,14 +60,16 @@ default two-hour block; matches without one become all-day events. Event
 UIDs are derived from the fixture's date and teams, so converting the same
 CSV twice produces the same UIDs instead of duplicate calendar entries.
 
-Times are written as floating (no timezone offset, no `TZID`) — see the
-roadmap below.
-
 ## Known limitations
 
 This is an early version. Notably:
 
-- No timezone handling; times are read and written as local wall-clock time.
+- `--tz` writes a `TZID` parameter on `DTSTART`/`DTEND` but doesn't emit a
+  `VTIMEZONE` block, so it relies on the calendar app already knowing the
+  IANA zone by name. That's true of every mainstream calendar app (Google,
+  Apple, Outlook on the web), but a strict RFC 5545 reader could reject it.
+- Reading an `.ics` file ignores any `TZID` on `DTSTART` and keeps the wall-clock
+  time as-is — there's nowhere to put the zone on the way back out to CSV.
 - ICS parsing doesn't unescape `\,` `\;` `\\` in field values yet.
 - No validation that a fixture list is internally consistent (duplicate
   matches, teams playing themselves, etc.).

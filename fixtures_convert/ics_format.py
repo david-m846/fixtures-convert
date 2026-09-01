@@ -1,6 +1,7 @@
 import uuid
+import zoneinfo
 from datetime import datetime, timedelta
-from typing import List
+from typing import List, Optional
 
 from .models import Fixture
 
@@ -32,7 +33,13 @@ def _escape(text: str) -> str:
     return text.replace("\\", "\\\\").replace(",", "\\,").replace(";", "\\;")
 
 
-def write_ics(path, fixtures: List[Fixture]) -> None:
+def write_ics(path, fixtures: List[Fixture], tz: Optional[str] = None) -> None:
+    if tz:
+        # fail before writing anything rather than leave a half-written file
+        # behind because of a typo in the zone name
+        zoneinfo.ZoneInfo(tz)
+    tzid_param = f";TZID={tz}" if tz else ""
+
     lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//fixtures-convert//EN"]
     stamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
     for fx in fixtures:
@@ -42,8 +49,8 @@ def write_ics(path, fixtures: List[Fixture]) -> None:
         if fx.kickoff:
             start = datetime.combine(fx.match_date, fx.kickoff)
             end = start + DEFAULT_DURATION
-            lines.append(f"DTSTART:{start.strftime('%Y%m%dT%H%M%S')}")
-            lines.append(f"DTEND:{end.strftime('%Y%m%dT%H%M%S')}")
+            lines.append(f"DTSTART{tzid_param}:{start.strftime('%Y%m%dT%H%M%S')}")
+            lines.append(f"DTEND{tzid_param}:{end.strftime('%Y%m%dT%H%M%S')}")
         else:
             end_date = fx.match_date + timedelta(days=1)
             lines.append(f"DTSTART;VALUE=DATE:{fx.match_date.strftime('%Y%m%d')}")
