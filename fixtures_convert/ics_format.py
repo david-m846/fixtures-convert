@@ -33,6 +33,26 @@ def _escape(text: str) -> str:
     return text.replace("\\", "\\\\").replace(",", "\\,").replace(";", "\\;")
 
 
+TEXT_PROPERTIES = ("SUMMARY", "LOCATION", "DESCRIPTION")
+
+
+def _unescape(text: str) -> str:
+    # inverse of _escape, plus \n / \N since RFC 5545 TEXT values escape
+    # embedded newlines that way
+    out = []
+    i = 0
+    while i < len(text):
+        c = text[i]
+        if c == "\\" and i + 1 < len(text):
+            nxt = text[i + 1]
+            out.append("\n" if nxt in ("n", "N") else nxt)
+            i += 2
+        else:
+            out.append(c)
+            i += 1
+    return "".join(out)
+
+
 def write_ics(path, fixtures: List[Fixture], tz: Optional[str] = None) -> None:
     if tz:
         # fail before writing anything rather than leave a half-written file
@@ -113,6 +133,8 @@ def read_ics(path) -> List[Fixture]:
                     competition=current.get("DESCRIPTION", ""),
                 ))
             current = None
-        elif current is not None and name in ("DTSTART", "SUMMARY", "LOCATION", "DESCRIPTION"):
+        elif current is not None and name in TEXT_PROPERTIES:
+            current[name] = _unescape(value)
+        elif current is not None and name == "DTSTART":
             current[name] = value
     return fixtures

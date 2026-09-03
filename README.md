@@ -70,7 +70,6 @@ This is an early version. Notably:
   Apple, Outlook on the web), but a strict RFC 5545 reader could reject it.
 - Reading an `.ics` file ignores any `TZID` on `DTSTART` and keeps the wall-clock
   time as-is — there's nowhere to put the zone on the way back out to CSV.
-- ICS parsing doesn't unescape `\,` `\;` `\\` in field values yet.
 - No validation that a fixture list is internally consistent (duplicate
   matches, teams playing themselves, etc.).
 
