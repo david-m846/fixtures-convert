@@ -6,12 +6,13 @@ from typing import Optional
 
 from .csv_format import read_csv, write_csv
 from .ics_format import read_ics, write_ics
+from .validate import validate
 
 READERS = {".csv": read_csv, ".ics": read_ics}
 WRITERS = {".csv": write_csv, ".ics": write_ics}
 
 
-def convert(src: Path, dst: Path, tz: Optional[str] = None) -> int:
+def convert(src: Path, dst: Path, tz: Optional[str] = None, strict: bool = False) -> int:
     try:
         reader = READERS[src.suffix.lower()]
     except KeyError:
@@ -23,6 +24,13 @@ def convert(src: Path, dst: Path, tz: Optional[str] = None) -> int:
         raise SystemExit("--tz only applies when writing .ics files")
 
     fixtures = reader(src)
+
+    issues = validate(fixtures)
+    for issue in issues:
+        print(f"warning: {issue}", file=sys.stderr)
+    if issues and strict:
+        raise SystemExit(f"{len(issues)} validation issue(s) found, aborting (--strict)")
+
     if dst_suffix == ".ics":
         write_ics(dst, fixtures, tz=tz)
     else:
@@ -44,10 +52,16 @@ def main(argv=None) -> int:
              "only valid when the destination is .ics; times are written floating, "
              "with no offset, if this is omitted",
     )
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="abort instead of just warning if the fixture list has duplicates, "
+             "self-fixtures, or rows missing a team",
+    )
     args = parser.parse_args(argv)
 
     try:
-        count = convert(args.source, args.dest, tz=args.tz)
+        count = convert(args.source, args.dest, tz=args.tz, strict=args.strict)
     except zoneinfo.ZoneInfoNotFoundError:
         raise SystemExit(f"unknown timezone {args.tz!r}")
     print(f"wrote {count} fixture(s) to {args.dest}")

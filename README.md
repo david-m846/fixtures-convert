@@ -38,6 +38,15 @@ fixtures-convert season.csv season.ics --tz Europe/London
 `--tz` only makes sense when writing `.ics`; it's rejected if the destination
 is `.csv`.
 
+Every conversion is checked for duplicate fixtures (same date and teams),
+teams listed playing themselves, and rows missing a team name. Problems are
+printed as warnings but don't stop the conversion by default; pass `--strict`
+to abort instead:
+
+```
+fixtures-convert season.csv season.ics --strict
+```
+
 ## CSV format
 
 One row per match, header required:
@@ -70,8 +79,6 @@ This is an early version. Notably:
   Apple, Outlook on the web), but a strict RFC 5545 reader could reject it.
 - Reading an `.ics` file ignores any `TZID` on `DTSTART` and keeps the wall-clock
   time as-is — there's nowhere to put the zone on the way back out to CSV.
-- No validation that a fixture list is internally consistent (duplicate
-  matches, teams playing themselves, etc.).
 
 ## License
 
