@@ -80,6 +80,8 @@ def write_ics(path, fixtures: List[Fixture], tz: Optional[str] = None) -> None:
             lines.append(_fold(f"LOCATION:{_escape(fx.venue)}"))
         if fx.competition:
             lines.append(_fold(f"DESCRIPTION:{_escape(fx.competition)}"))
+        if fx.repeat:
+            lines.append(_fold(f"RRULE:{fx.repeat}"))
         lines.append("END:VEVENT")
     lines.append("END:VCALENDAR")
     with open(path, "w", encoding="utf-8", newline="") as f:
@@ -131,10 +133,11 @@ def read_ics(path) -> List[Fixture]:
                     kickoff=kickoff,
                     venue=current.get("LOCATION", ""),
                     competition=current.get("DESCRIPTION", ""),
+                    repeat=current.get("RRULE"),
                 ))
             current = None
         elif current is not None and name in TEXT_PROPERTIES:
             current[name] = _unescape(value)
-        elif current is not None and name == "DTSTART":
+        elif current is not None and name in ("DTSTART", "RRULE"):
             current[name] = value
     return fixtures

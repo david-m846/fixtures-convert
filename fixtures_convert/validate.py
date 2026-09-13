@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import List
 
 from .models import Fixture
+from .recurrence import validate_rrule
 
 
 @dataclass
@@ -33,4 +34,9 @@ def validate(fixtures: List[Fixture]) -> List[ValidationIssue]:
             ))
         else:
             seen[key] = i
+
+        if fx.repeat is not None:
+            error = validate_rrule(fx.repeat)
+            if error:
+                issues.append(ValidationIssue(i, f"bad repeat rule: {error}"))
     return issues

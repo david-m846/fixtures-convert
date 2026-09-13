@@ -52,22 +52,32 @@ fixtures-convert season.csv season.ics --strict
 One row per match, header required:
 
 ```csv
-date,time,home,away,venue,competition
-2026-08-29,15:00,Riverside FC,Oakfield United,Riverside Park,League Division 2
-2026-09-05,,Oakfield United,Riverside FC,Oak Lane,League Division 2
+date,time,home,away,venue,competition,repeat
+2026-08-29,15:00,Riverside FC,Oakfield United,Riverside Park,League Division 2,
+2026-09-05,,Oakfield United,Riverside FC,Oak Lane,League Division 2,
+2026-09-01,20:00,Riverside FC 5s,The Anchor 5s,Sports Hall,Tuesday Night League,FREQ=WEEKLY;COUNT=10
 ```
 
 - `date` — required, `YYYY-MM-DD`
 - `time` — optional, 24-hour `HH:MM`; leave blank for an all-day fixture
 - `home`, `away` — required team names
 - `venue`, `competition` — optional, free text
+- `repeat` — optional, an RFC 5545 `RRULE` value (e.g. `FREQ=WEEKLY;COUNT=10`
+  or `FREQ=WEEKLY;UNTIL=20261215`) for a fixture that repeats on a fixed
+  schedule, such as a regular league night against the same opponent
 
 ## iCalendar output
 
 Each fixture becomes one `VEVENT`. Matches with a kickoff time run for a
 default two-hour block; matches without one become all-day events. Event
 UIDs are derived from the fixture's date and teams, so converting the same
-CSV twice produces the same UIDs instead of duplicate calendar entries.
+CSV twice produces the same UIDs instead of duplicate calendar entries. A
+fixture with a `repeat` value gets an `RRULE` property, so a single row in
+the CSV becomes one recurring event instead of one row per week.
+
+`repeat` is written straight through to `RRULE` with no reformatting, so
+`UNTIL` needs to already be in the right shape for the fixture's `DTSTART`:
+plain `YYYYMMDD` for an all-day fixture, `YYYYMMDDTHHMMSS` for a timed one.
 
 ## Known limitations
 
@@ -79,6 +89,10 @@ This is an early version. Notably:
   Apple, Outlook on the web), but a strict RFC 5545 reader could reject it.
 - Reading an `.ics` file ignores any `TZID` on `DTSTART` and keeps the wall-clock
   time as-is — there's nowhere to put the zone on the way back out to CSV.
+- `repeat`/`RRULE` values aren't parsed or validated beyond checking `FREQ`,
+  `INTERVAL`, `COUNT` and `UNTIL` are individually well-formed; there's no
+  support for `EXDATE`, `RDATE`, or expanding a recurring fixture into its
+  individual occurrences.
 
 ## License
 

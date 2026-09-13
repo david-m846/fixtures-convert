@@ -52,6 +52,18 @@ class ValidateTests(unittest.TestCase):
         issues = validate(fixtures)
         self.assertEqual(issues[0].row, 2)
 
+    def test_valid_repeat_rule_has_no_issues(self):
+        fixture = fx(date(2026, 8, 29), "Riverside FC", "Oakfield United")
+        fixture.repeat = "FREQ=WEEKLY;COUNT=8"
+        self.assertEqual(validate([fixture]), [])
+
+    def test_bad_repeat_rule_is_flagged(self):
+        fixture = fx(date(2026, 8, 29), "Riverside FC", "Oakfield United")
+        fixture.repeat = "FREQ=FORTNIGHTLY"
+        issues = validate([fixture])
+        self.assertEqual(len(issues), 1)
+        self.assertIn("bad repeat rule", issues[0].message)
+
 
 if __name__ == "__main__":
     unittest.main()

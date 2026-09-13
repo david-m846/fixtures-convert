@@ -4,7 +4,7 @@ from typing import List
 
 from .models import Fixture
 
-FIELDNAMES = ["date", "time", "home", "away", "venue", "competition"]
+FIELDNAMES = ["date", "time", "home", "away", "venue", "competition", "repeat"]
 
 
 def read_csv(path) -> List[Fixture]:
@@ -21,6 +21,8 @@ def read_csv(path) -> List[Fixture]:
             raw_time = (row.get("time") or "").strip()
             kickoff = datetime.strptime(raw_time, "%H:%M").time() if raw_time else None
 
+            raw_repeat = (row.get("repeat") or "").strip()
+
             fixtures.append(Fixture(
                 match_date=match_date,
                 home=(row.get("home") or "").strip(),
@@ -28,6 +30,7 @@ def read_csv(path) -> List[Fixture]:
                 kickoff=kickoff,
                 venue=(row.get("venue") or "").strip(),
                 competition=(row.get("competition") or "").strip(),
+                repeat=raw_repeat or None,
             ))
     return fixtures
 
@@ -44,4 +47,5 @@ def write_csv(path, fixtures: List[Fixture]) -> None:
                 "away": fx.away,
                 "venue": fx.venue,
                 "competition": fx.competition,
+                "repeat": fx.repeat or "",
             })

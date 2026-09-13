@@ -33,6 +33,15 @@ SAMPLE_FIXTURES = [
         venue="Ground 2; Pitch A",
         competition="Cup Round 1 \\ Replay",
     ),
+    Fixture(
+        match_date=date(2026, 9, 1),
+        home="Riverside FC 5s",
+        away="The Anchor 5s",
+        kickoff=time(20, 0),
+        venue="Sports Hall",
+        competition="Tuesday Night League",
+        repeat="FREQ=WEEKLY;COUNT=10",
+    ),
 ]
 
 
@@ -69,6 +78,20 @@ class IcsRoundTripTests(unittest.TestCase):
                 uids(first.read_text(encoding="utf-8")),
                 uids(second.read_text(encoding="utf-8")),
             )
+
+    def test_repeat_becomes_an_rrule_line(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "season.ics"
+            repeating = [SAMPLE_FIXTURES[3]]
+            write_ics(path, repeating)
+            text = path.read_text(encoding="utf-8")
+            self.assertIn("RRULE:FREQ=WEEKLY;COUNT=10", text)
+
+    def test_fixture_without_repeat_gets_no_rrule_line(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "season.ics"
+            write_ics(path, [SAMPLE_FIXTURES[0]])
+            self.assertNotIn("RRULE", path.read_text(encoding="utf-8"))
 
     def test_tz_flag_does_not_change_what_comes_back(self):
         with tempfile.TemporaryDirectory() as tmp:

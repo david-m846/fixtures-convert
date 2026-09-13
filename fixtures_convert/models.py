@@ -15,6 +15,10 @@ class Fixture:
     kickoff: Optional[time] = None
     venue: str = ""
     competition: str = ""
+    # raw RRULE value (RFC 5545 syntax, e.g. "FREQ=WEEKLY;COUNT=8") for
+    # fixtures that repeat on a fixed schedule, most often a regular league
+    # night against the same opponent. None for a one-off fixture.
+    repeat: Optional[str] = None
 
     @property
     def summary(self) -> str:
