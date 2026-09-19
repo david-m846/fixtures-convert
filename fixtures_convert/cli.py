@@ -6,10 +6,11 @@ from typing import Optional
 
 from .csv_format import read_csv, write_csv
 from .ics_format import read_ics, write_ics
+from .json_format import read_json, write_json
 from .validate import validate
 
-READERS = {".csv": read_csv, ".ics": read_ics}
-WRITERS = {".csv": write_csv, ".ics": write_ics}
+READERS = {".csv": read_csv, ".ics": read_ics, ".json": read_json}
+WRITERS = {".csv": write_csv, ".ics": write_ics, ".json": write_json}
 
 
 def convert(src: Path, dst: Path, tz: Optional[str] = None, strict: bool = False) -> int:
@@ -33,6 +34,8 @@ def convert(src: Path, dst: Path, tz: Optional[str] = None, strict: bool = False
 
     if dst_suffix == ".ics":
         write_ics(dst, fixtures, tz=tz)
+    elif dst_suffix == ".json":
+        write_json(dst, fixtures)
     else:
         write_csv(dst, fixtures)
     return len(fixtures)
@@ -41,10 +44,10 @@ def convert(src: Path, dst: Path, tz: Optional[str] = None, strict: bool = False
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(
         prog="fixtures-convert",
-        description="convert sports fixtures between CSV and iCalendar (.ics)",
+        description="convert sports fixtures between CSV, iCalendar (.ics) and JSON",
     )
-    parser.add_argument("source", type=Path, help="input file (.csv or .ics)")
-    parser.add_argument("dest", type=Path, help="output file (.csv or .ics)")
+    parser.add_argument("source", type=Path, help="input file (.csv, .ics or .json)")
+    parser.add_argument("dest", type=Path, help="output file (.csv, .ics or .json)")
     parser.add_argument(
         "--tz",
         metavar="ZONE",

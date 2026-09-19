@@ -7,15 +7,16 @@ you end up either retyping thirty match dates into your phone by hand, or
 hunting for some web tool that wants to see your whole calendar to do a
 five-second conversion.
 
-This is a small command-line tool that converts fixture lists between the
-two formats, in both directions, with no network access and no dependencies
-beyond the Python standard library.
+This is a small command-line tool that converts fixture lists between CSV,
+iCalendar (.ics) and JSON, in any direction, with no network access and no
+dependencies beyond the Python standard library.
 
 ## Usage
 
 ```
 python -m fixtures_convert.cli season.csv season.ics
 python -m fixtures_convert.cli season.ics season.csv
+python -m fixtures_convert.cli season.csv season.json
 ```
 
 Or, if installed (`pip install -e .`), the `fixtures-convert` command does
@@ -78,6 +79,25 @@ the CSV becomes one recurring event instead of one row per week.
 `repeat` is written straight through to `RRULE` with no reformatting, so
 `UNTIL` needs to already be in the right shape for the fixture's `DTSTART`:
 plain `YYYYMMDD` for an all-day fixture, `YYYYMMDDTHHMMSS` for a timed one.
+
+## JSON format
+
+A JSON array of objects with the same fields as the CSV columns. `time` and
+`repeat` are `null` rather than an empty string when absent:
+
+```json
+[
+  {
+    "date": "2026-08-29",
+    "time": "15:00",
+    "home": "Riverside FC",
+    "away": "Oakfield United",
+    "venue": "Riverside Park",
+    "competition": "League Division 2",
+    "repeat": null
+  }
+]
+```
 
 ## Known limitations
 

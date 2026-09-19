@@ -5,6 +5,7 @@ from pathlib import Path
 
 from fixtures_convert.csv_format import read_csv, write_csv
 from fixtures_convert.ics_format import read_ics, write_ics
+from fixtures_convert.json_format import read_json, write_json
 from fixtures_convert.models import Fixture
 
 
@@ -100,6 +101,22 @@ class IcsRoundTripTests(unittest.TestCase):
             self.assertEqual(read_ics(path), SAMPLE_FIXTURES)
 
 
+class JsonRoundTripTests(unittest.TestCase):
+    def test_write_then_read_is_identity(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "season.json"
+            write_json(path, SAMPLE_FIXTURES)
+            self.assertEqual(read_json(path), SAMPLE_FIXTURES)
+
+    def test_missing_time_and_repeat_are_null_not_empty_string(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "season.json"
+            write_json(path, [SAMPLE_FIXTURES[1]])
+            text = path.read_text(encoding="utf-8")
+            self.assertIn('"time": null', text)
+            self.assertIn('"repeat": null', text)
+
+
 class CrossFormatRoundTripTests(unittest.TestCase):
     def test_csv_to_ics_to_csv_preserves_fixtures(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -114,6 +131,20 @@ class CrossFormatRoundTripTests(unittest.TestCase):
             write_csv(csv_path_again, fixtures)
 
             self.assertEqual(read_csv(csv_path_again), SAMPLE_FIXTURES)
+
+    def test_csv_to_json_to_ics_preserves_fixtures(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            csv_path = Path(tmp) / "season.csv"
+            json_path = Path(tmp) / "season.json"
+            ics_path = Path(tmp) / "season.ics"
+
+            write_csv(csv_path, SAMPLE_FIXTURES)
+            fixtures = read_csv(csv_path)
+            write_json(json_path, fixtures)
+            fixtures = read_json(json_path)
+            write_ics(ics_path, fixtures)
+
+            self.assertEqual(read_ics(ics_path), SAMPLE_FIXTURES)
 
 
 if __name__ == "__main__":
